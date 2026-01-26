@@ -1,0 +1,19 @@
+# Nextflow
+.nextflow/
+work/
+results/
+
+# Data
+data/
+
+# Logs & reports
+*.log
+*.html
+
+# Python
+__pycache__/
+*.pyc
+.env
+.venv
+# User-specific configs & metadata
+params.config
