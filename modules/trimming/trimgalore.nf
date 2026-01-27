@@ -1,14 +1,17 @@
 process TRIMGALORE {
-  tag "$sample_id"
 
-  input:
-  tuple val(sample_id), path(reads)
+    tag "$sample_id"
 
-  output:
-  tuple val(sample_id), path("*_val_*.fq.gz")
+    publishDir "${params.outdir}/trimmed", mode: 'copy'
 
-  script:
-  """
-  trim_galore --paired ${reads[0]} ${reads[1]} --cores ${task.cpus}
-  """
+    input:
+    tuple val(sample_id), path(reads)
+
+    output:
+    tuple val(sample_id), path("*_val_*.fq.gz")
+
+    script:
+    """
+    trim_galore --paired ${reads[0]} ${reads[1]}
+    """
 }
