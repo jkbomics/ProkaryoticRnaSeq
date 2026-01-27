@@ -1,18 +1,20 @@
 process BOWTIE2_ALIGN {
-  tag "$sample_id"
 
-  input:
-  tuple val(sample_id), path(reads)
-  path index
+    tag "$sample_id"
 
-  output:
-  tuple val(sample_id), path("*.bam")
+    publishDir "${params.outdir}/alignment", mode: 'copy'
 
-  script:
-  """
-  bowtie2 -x ${index} \
-          -1 ${reads[0]} -2 ${reads[1]} \
-          --threads ${task.cpus} |
-  samtools sort -@ ${task.cpus} -o ${sample_id}.bam
-  """
+    input:
+    tuple val(sample_id), path(reads)
+    path genome_index
+
+    output:
+    tuple val(sample_id), path("${sample_id}.bam")
+
+    script:
+    """
+    bowtie2 -x ${genome_index} \
+            -1 ${reads[0]} -2 ${reads[1]} |
+    samtools sort -o ${sample_id}.bam
+    """
 }
