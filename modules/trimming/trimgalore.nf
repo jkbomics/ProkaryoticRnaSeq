@@ -8,10 +8,10 @@ process TRIMGALORE {
     tuple val(sample_id), path(reads)
 
     output:
-    tuple val(sample_id), path("*_val_*.fq.gz")
+    tuple val(sample_id), path("*.fq.gz"), emit: trimmed_reads
 
     script:
     """
-    trim_galore --paired ${reads[0]} ${reads[1]}
+    trim_galore --paired ${reads[0]} ${reads[1]} --cores ${task.cpus}
     """
 }
