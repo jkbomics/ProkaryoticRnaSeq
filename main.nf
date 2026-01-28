@@ -1,7 +1,8 @@
 workflow {
 
     Channel
-        .fromFilePairs(params.reads)
+        .fromFilePairs(params.reads, flat: true)
+        .map { sample_id, r1, r2 -> tuple(sample_id, [r1, r2]) }
         .set { read_pairs }
 
     FASTQC(read_pairs)
@@ -16,3 +17,4 @@ workflow {
 
     MULTIQC(true)
 }
+
