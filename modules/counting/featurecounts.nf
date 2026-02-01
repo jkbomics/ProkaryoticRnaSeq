@@ -1,19 +1,21 @@
 process FEATURECOUNTS {
-  input:
-  path bam_files
-  path annotation
+    publishDir "${params.outdir}/counts", mode: 'copy'
 
-  output:
-  path "gene_counts.txt"
+    input:
+    path bam_files
+    path annotation
 
-  script:
-  """
-  featureCounts \
-    -a ${annotation} \
-    -o gene_counts.txt \
-    -T ${task.cpus} \
-    -g ID \
-    -t gene \
-    ${bam_files}
-  """
+    output:
+    path "gene_counts.txt"
+
+    script:
+    """
+    featureCounts \\
+        -a ${annotation} \\
+        -o gene_counts.txt \\
+        -T ${task.cpus} \\
+        -g ID \\
+        -t gene \\
+        ${bam_files}
+    """
 }
