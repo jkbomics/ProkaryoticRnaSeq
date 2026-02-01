@@ -8,35 +8,30 @@ include { SAMTOOLS_STATS }from './modules/stats/samtools'
 include { FEATURECOUNTS } from './modules/counting/featurecounts'
 
 workflow {
-    // This is the part that was failing. 
-    // We take the raw list and manually assign the ID and the Reads sub-list.
-    read_pairs = Channel
+    // FIX: Manually group the files so Nextflow doesn't get confused
+    read_pairs_ch = Channel
         .fromFilePairs(params.reads, flat: true)
-        .map { it -> 
-            def sample_id = it[0]
-            def reads = [it[1], it[2]]
-            return tuple(sample_id, reads)
-        }
+        .map { it -> [ it[0], [it[1], it[2]] ] }
 
-    // QC and Trimming
-    fastqc_out    = FASTQC(read_pairs)
-    trimmed_out   = TRIMGALORE(read_pairs)
+    // Now pass this fixed channel to your processes
+    fastqc_out    = FASTQC(read_pairs_ch)
+    trimmed_out   = TRIMGALORE(read_pairs_ch)
 
-    // Alignment - TRIMGALORE outputs a tuple [id, [r1, r2]]
+    // Alignment: Note that TRIMGALORE also returns a tuple [id, [files]]
     aligned_out   = BOWTIE2_ALIGN(trimmed_out, params.genome)
 
     // Stats
     stats_out     = SAMTOOLS_STATS(aligned_out)
 
-    // Quantification - Extract just the BAM paths and collect into one list
-    bams_ch = aligned_out.map{ it -> it[1] }.collect()
-    feature_counts = FEATURECOUNTS(bams_ch, params.annotation)
+    // Quantification: Collect only the BAM files (index 1 of the tuple)
+    feature_counts = FEATURECOUNTS(aligned_out.map{ it[1] }.collect(), params.annotation)
 
-    // MultiQC - Collect all relevant report files
-    multiqc_input = Channel.empty()
+    // MultiQC: Aggregate all logs
+    multiqc_files = Channel.empty()
         .mix(fastqc_out.collect())
         .mix(stats_out.collect())
         .mix(feature_counts.collect())
 
-    MULTIQC(multiqc_input.collect())
+    MULTIQC(multiqc_files.collect())
 }
+
