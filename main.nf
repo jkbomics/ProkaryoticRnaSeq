@@ -1,5 +1,6 @@
 nextflow.enable.dsl = 2
 
+// Import modules
 include { FASTQC }        from './modules/qc/fastqc'
 include { MULTIQC }       from './modules/qc/multiqc'
 include { TRIMGALORE }    from './modules/trimming/trimgalore'
@@ -8,37 +9,32 @@ include { SAMTOOLS_STATS }from './modules/stats/samtools'
 include { FEATURECOUNTS } from './modules/counting/featurecounts'
 
 workflow {
-
-    // Correctly group the flat output into [sample_id, [read1, read2]]
-    read_pairs = Channel
+    // FIX: Restructure the flat [id, r1, r2] into [id, [r1, r2]]
+    read_pairs_ch = Channel
         .fromFilePairs(params.reads, flat: true)
         .map { it -> [ it[0], [it[1], it[2]] ] }
 
-    // Run Quality Control
-    fastqc_results = FASTQC(read_pairs)
+    // QC and Trimming
+    fastqc_out    = FASTQC(read_pairs_ch)
+    trimmed_out   = TRIMGALORE(read_pairs_ch)
 
-    // Run Trimming
-    trimmed_results = TRIMGALORE(read_pairs)
+    // Alignment
+    aligned_out   = BOWTIE2_ALIGN(trimmed_out, params.genome)
 
-    // Run Alignment - Ensure params.genome is a valid bowtie2 index prefix
-    aligned_results = BOWTIE2_ALIGN(trimmed_results, params.genome)
+    // Post-alignment stats
+    stats_out     = SAMTOOLS_STATS(aligned_out)
 
-    // Run Stats
-    stats_results = SAMTOOLS_STATS(aligned_results)
+    // Quantification - Collect all BAM files into a single list
+    // We use .map{ it[1] } to get the file path, ignoring the sample_id
+    feature_counts = FEATURECOUNTS(aligned_out.map{ it[1] }.collect(), params.annotation)
 
-    // Run Counting
-    feature_counts = FEATURECOUNTS(aligned_results.collect { it[1] }, params.annotation)
+    // MultiQC - Aggregate all logs
+    // We collect() every channel to ensure MultiQC waits for all samples to finish
+    multiqc_files = Channel.empty()
+        .mix(fastqc_out.collect())
+        .mix(trimmed_out.collect())
+        .mix(stats_out.collect())
+        .mix(feature_counts.collect())
 
-    /*
-     * Collect all report-generating outputs to trigger MultiQC
-     */
-    ch_multiqc_files = Channel.empty()
-    ch_multiqc_files = ch_multiqc_files.mix(
-        fastqc_results.collect(),
-        trimmed_results.collect { it[1] },
-        stats_results.collect(),
-        feature_counts.collect()
-    )
-
-    MULTIQC(ch_multiqc_files.collect())
+    MULTIQC(multiqc_files.collect())
 }
