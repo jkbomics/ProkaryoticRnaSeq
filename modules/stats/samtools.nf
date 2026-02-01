@@ -1,12 +1,14 @@
 process SAMTOOLS_STATS {
-  input:
-  tuple val(sample_id), path(bam)
+    tag "$sample_id"
+    
+    input:
+    tuple val(sample_id), path(bam) // Must match the output of BOWTIE2_ALIGN
 
-  output:
-  path "${sample_id}.stats"
+    output:
+    path "*.stats"
 
-  script:
-  """
-  samtools stats ${bam} > ${sample_id}.stats
-  """
+    script:
+    """
+    samtools stats ${bam} > ${sample_id}.stats
+    """
 }
