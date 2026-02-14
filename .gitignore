@@ -16,3 +16,5 @@ results/
 # OS / misc
 .DS_Store
 
+.devcontainer/
+data/
