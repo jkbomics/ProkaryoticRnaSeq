@@ -1,19 +1,18 @@
 # Nextflow
-.nextflow/
 work/
+.nextflow*
+.nextflow.log*
+
+# Results
 results/
 
-# Data
-data/
-
-# Logs & reports
-*.log
+# Containers / indexes
+*.bt2
+*.bam
+*.sam
 *.html
+*.zip
 
-# Python
-__pycache__/
-*.pyc
-.env
-.venv
-# User-specific configs & metadata
-params.config
+# OS / misc
+.DS_Store
+
