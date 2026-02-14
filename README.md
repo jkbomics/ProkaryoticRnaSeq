@@ -244,7 +244,7 @@ https://github.com/jkbomics/ProkaryoticRnaSeq
 
 ## Author
 
-Helga Jenifer 
+Helga Jenifer, 
 Bioinformatician | RNA-Seq | AI-driven Bioinformatics  
  
 
@@ -255,5 +255,6 @@ GitHub: https://github.com/jkbomics
 # Contributing
 
 Pull requests and issues are welcome.
+
 
 
