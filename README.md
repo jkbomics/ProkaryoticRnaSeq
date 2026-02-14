@@ -245,11 +245,13 @@ https://github.com/jkbomics/ProkaryoticRnaSeq
 # Author
 
 **Helga Jenifer M**
+```
 Bioinformatician 
 jkbomics@gmail.com
-
+```
 ---
 
 # Contributing
 
 Pull requests and issues are welcome.
+
